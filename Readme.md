@@ -175,3 +175,62 @@ If you prefer not to use Docker:
 pip install -r requirements.txt
 ```
 
+**Frontend (if running separately):**
+```bash
+cd frontend
+npm install
+npm start
+```
+
+## Windows Users Notes
+
+### Available Batch Files
+
+- **`start.bat`** - Main starter script (uses Docker)
+  - `start.bat` - Default WASM mode
+  - `start.bat --mode server` - Server-side inference
+  - `start.bat --debug` - Enable debug logging
+  - `start.bat --help` - Show all options
+
+- **`start_local.bat`** - Local development without Docker
+  - Automatically creates Python virtual environment
+  - Installs dependencies and starts the server
+  - Good for development or if Docker is not available
+
+### Commands Reference for Windows
+
+```cmd
+# Start with Docker (recommended)
+start.bat
+
+# Start with server-side inference
+start.bat --mode server
+
+# Local development mode (no Docker)
+start_local.bat
+
+# View help and options
+start.bat --help
+```
+
+### Troubleshooting Windows
+
+1. **Docker not found**: Install Docker Desktop from the official website
+2. **Python not found**: Install Python 3.9+ and add to PATH
+3. **Port conflicts**: Close other applications using ports 3000 or 3443
+4. **Certificate errors**: Accept the self-signed certificate warning in your browser
+
+## Platform Support
+
+- **Windows** - Full support with `.bat` files
+- **Linux** - Full support with `.sh` scripts
+- **macOS** - Full support with `.sh` scripts
+- **Docker** - Cross-platform containerized deployment
+
+## Quick Windows Setup Summary
+
+1. **Clone the repository**
+2. **For Docker users**: Run `start.bat`
+3. **For local development**: Run `start_local.bat`
+4. **Open browser**: Navigate to http://localhost:3000
+5. **Start detecting**: Use your webcam or mobile device
