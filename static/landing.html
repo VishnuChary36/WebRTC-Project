@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 WebRTC Demo - Choose Connection</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            color: white;
+        }
+        .container {
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+            border-radius: 20px; padding: 40px; max-width: 500px; text-align: center;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37); border: 1px solid rgba(255,255,255,0.18);
+        }
+        h1 { margin-bottom: 30px; font-size: 2em; }
+        .device-section { margin: 30px 0; padding: 25px; background: rgba(255,255,255,0.1); border-radius: 15px; }
+        .device-icon { font-size: 3em; margin-bottom: 15px; }
+        .btn { 
+            display: inline-block; padding: 15px 30px; margin: 10px; 
+            background: rgba(255,255,255,0.2); color: white; text-decoration: none; 
+            border-radius: 10px; font-weight: bold; transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+        .btn.primary { background: #4CAF50; border-color: #4CAF50; }
+        .btn.primary:hover { background: #45a049; }
+        .info { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-top: 20px; font-size: 14px; }
+        .warning { background: rgba(255,193,7,0.2); border: 1px solid rgba(255,193,7,0.5); }
+        .success { background: rgba(76,175,80,0.2); border: 1px solid rgba(76,175,80,0.5); }
+        .qr-code { background: white; padding: 10px; border-radius: 10px; margin: 20px 0; }
+        .status { padding: 10px; border-radius: 5px; margin: 10px 0; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 WebRTC Object Detection Demo</h1>
+        
+        <!-- Mobile Section -->
+        <div class="device-section">
+            <div class="device-icon">📱</div>
+            <h2>Mobile Device</h2>
+            <p>For <strong>camera access</strong> on mobile phones</p>
+            <a href="#" class="btn primary" id="httpsLink">
+                🔐 HTTPS Version (Required for Camera)
+            </a>
+            <div class="info success">
+                ✅ Camera access enabled<br>
+                ✅ WebRTC streaming supported<br>
+                ✅ All mobile browsers compatible
+            </div>
+        </div>
+
+        <!-- Desktop Section -->
+        <div class="device-section">
+            <div class="device-icon">💻</div>
+            <h2>Desktop/Laptop</h2>
+            <p>For <strong>development</strong> and testing</p>
+            <a href="http://172.20.19.211:3000/" class="btn" id="httpLink">
+                🌐 HTTP Version (Development)
+            </a>
+            <a href="https://172.20.19.211:3443/" class="btn">
+                🔐 HTTPS Version (Production)
+            </a>
+            <div class="info">
+                💡 HTTP works for localhost development<br>
+                🔐 HTTPS recommended for all testing
+            </div>
+        </div>
+
+        <!-- Status and Info -->
+        <div class="info warning">
+            <strong>⚠️ Important:</strong><br>
+            Mobile browsers require HTTPS for camera access.<br>
+            Use the HTTPS version (port 3443) on mobile devices.
+        </div>
+
+        <div class="info">
+            <strong>🔧 Troubleshooting:</strong><br>
+            • Certificate warnings are normal for self-signed certs<br>
+            • Click "Advanced" → "Proceed to site" if warned<br>
+            • Add security exception in browser settings if needed
+        </div>
+        
+        <!-- Quick action: navigate to camera/index page -->
+        <div style="margin-top:20px;">
+            <a href="index.html" class="btn primary" id="openCameraBtn">🎯 Open Camera Page</a>
+            <div class="info" style="display:inline-block; margin-left:10px; vertical-align:middle;">
+                Tap to open the main camera & detection UI (opens on the same host and port).
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update links with current host
+        const currentHost = window.location.hostname;
+        const httpsUrl = `https://${currentHost}:3443/`;
+        const httpUrl = `http://${currentHost}:3000/`;
+        
+        document.getElementById('httpsLink').href = httpsUrl;
+        document.getElementById('httpLink').href = httpUrl;        // Auto-redirect mobile devices to HTTPS
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile && window.location.protocol === 'http:') {
+            // Show redirect notice
+            const notice = document.createElement('div');
+            notice.className = 'status success';
+            notice.innerHTML = '📱 Mobile device detected! Redirecting to HTTPS in 3 seconds...';
+            document.body.appendChild(notice);
+            
+            // Redirect after 3 seconds
+            setTimeout(() => {
+                window.location.href = httpsUrl;
+            }, 3000);
+        }
+        
+        console.log('🚀 WebRTC Demo URLs:');
+        console.log('📱 Mobile (HTTPS):', httpsUrl);
+        console.log('💻 Desktop (HTTP):', httpUrl);
+
+        // Ensure the Open Camera button navigates to the same host/port (works for HTTP and HTTPS)
+        try {
+            const indexUrl = `${window.location.protocol}//${currentHost}${window.location.port ? ':' + window.location.port : ''}/index.html`;
+            const openBtn = document.getElementById('openCameraBtn');
+            if (openBtn) openBtn.href = indexUrl;
+        } catch (e) {
+            // noop
+        }
+    </script>
+</body>
+</html>

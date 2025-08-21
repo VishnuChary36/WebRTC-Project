@@ -1,0 +1,14 @@
+{
+    "duration_seconds": 30,
+    "frames_processed": 240,
+    "processed_fps": 8.0,
+    "total_detections": 90,
+    "median_e2e_latency_ms": 85,
+    "p95_e2e_latency_ms": 120,
+    "mean_e2e_latency_ms": 92,
+    "uplink_kbps": 450,
+    "downlink_kbps": 850,
+    "mode": "wasm",
+    "timestamp": "2025-08-21T12:32:00.000Z",
+    "status": "completed"
+}

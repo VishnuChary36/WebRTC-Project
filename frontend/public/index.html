@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC VLM Object Detection</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+        #video-container { position: relative; }
+        #localVideo { background-color: #000; }
+        #overlayCanvas { position: absolute; top: 0; left: 0; }
+        #controls { margin: 10px; }
+        #metrics { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+        .status { padding: 5px; border-radius: 3px; }
+        .status.connected { background-color: #d4edda; color: #155724; }
+        .status.disconnected { background-color: #f8d7da; color: #721c24; }
+        .status.connecting { background-color: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>WebRTC VLM Object Detection</h1>
+    <div id="connection-status" class="status disconnected">Disconnected</div>
+    <div id="video-container">
+        <video id="localVideo" autoplay playsinline muted></video>
+        <canvas id="overlayCanvas"></canvas>
+    </div>
+    <div id="controls">
+        <button id="startBtn">Start Camera</button>
+        <button id="stopBtn">Stop Camera</button>
+        <button id="benchBtn">Run Benchmark</button>
+    </div>
+    <div id="metrics">
+        <pre>Metrics will appear here...</pre>
+    </div>
+    <div id="qr-container">
+        <h2>Scan with your phone</h2>
+        <img id="qr-code" src="" alt="QR Code">
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebRTC - AI Object Detection Platform</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Import Professional Font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            /* Professional Color Palette */
+            --primary-color: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --accent-color: #7c3aed;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --info-color: #0891b2;
+            
+            /* Surface Colors */
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --surface-elevated: #f1f5f9;
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            
+            /* Text Colors */
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --text-inverse: #ffffff;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            
+            /* Border Radius */
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            
+            /* Transitions */
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.2s ease;
+            --transition-slow: 0.3s ease;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 2rem 1.5rem;
+        }
+        
+        .header { 
+            text-align: center; 
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            background: var(--surface);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .mode-badge { 
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--gradient-success);
+            color: var(--text-inverse);
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: var(--shadow-md);
+            border: none;
+        }
+        
+        .demo-section { 
+            background: var(--surface);
+            border-radius: var(--radius-2xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            transition: all var(--transition-base);
+        }
+        
+        .demo-section:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .demo-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .demo-section h2 i {
+            color: var(--primary-color);
+            font-size: 1.25rem;
+        }
+        
+        .video-container { 
+            position: relative; 
+            margin: 1.5rem 0;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            background: #000;
+            aspect-ratio: 16/9;
+        }
+        
+        #localVideo { 
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: var(--radius-xl);
+            background: #000;
+            display: block;
+        }
+        
+        .overlay-canvas { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            pointer-events: none;
+            border-radius: var(--radius-xl);
+        }
+        
+        .qr-section { 
+            text-align: center;
+        }
+        
+        .qr-section p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .qr-code { 
+            max-width: 220px; 
+            margin: 1.5rem auto;
+            padding: 1rem;
+            background: var(--surface-elevated);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+            border: 2px dashed var(--border-color);
+            transition: all var(--transition-base);
+        }
+        
+        .qr-code:hover {
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.02);
+        }
+        
+        .metrics { 
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: var(--radius-xl);
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid #334155;
+            white-space: pre-line;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .controls { 
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        
+        .btn { 
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--primary-color);
+            color: var(--text-inverse);
+            border: none;
+            padding: 0.875rem 1.5rem;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: inherit;
+            text-decoration: none;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-md);
+            min-width: 140px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:hover { 
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn.danger { 
+            background: var(--danger-color);
+        }
+        
+        .btn.danger:hover { 
+            background: #b91c1c;
+        }
+        
+        .btn.secondary {
+            background: var(--surface-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn.secondary:hover {
+            background: var(--secondary-color);
+            color: var(--text-inverse);
+            border-color: var(--secondary-color);
+        }
+        
+        .status { 
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.25rem;
+            border-radius: var(--radius-lg);
+            margin: 1rem 0;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all var(--transition-base);
+        }
+        
+        .status.connected { 
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(5, 150, 105, 0.2);
+        }
+        
+        .status.connecting { 
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(217, 119, 6, 0.2);
+        }
+        
+        .status.disconnected { 
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+        
+        /* Detection Display Container */
+        .detection-container {
+            background: var(--gradient-hero);
+            color: var(--text-inverse);
+            border: none;
+            border-radius: var(--radius-2xl);
+            padding: 2rem;
+            margin: 2rem 0;
+            min-height: 120px;
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .detection-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            pointer-events: none;
+        }
+        
+        .detection-header {
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-inverse);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .detection-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            min-height: 60px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .detection-item {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--text-primary);
+            padding: 0.875rem 1.25rem;
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            animation: fadeInScale 0.4s ease-out;
+            transition: all var(--transition-base);
+            backdrop-filter: blur(10px);
+        }
+        
+        .detection-item:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-xl);
+            background: rgba(255, 255, 255, 1);
+        }
+        
+        @keyframes fadeInScale {
+            0% { 
+                opacity: 0; 
+                transform: scale(0.8) translateY(10px); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: scale(1) translateY(0); 
+            }
+        }
+        
+        .detection-empty {
+            grid-column: 1 / -1;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+            font-size: 0.875rem;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        /* Loading Animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .demo-section {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 280px;
+            }
+            
+            .detection-list {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 0.75rem;
+            }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--surface-elevated);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-eye" style="margin-right: 0.5rem;"></i>WebRTC VLM Object Detection</h1>
+            <p>Professional AI-Powered Object Detection Platform</p>
+            <span class="mode-badge">
+                <i class="fas fa-microchip"></i>
+                WASM MODE
+            </span>
+            <div id="connection-status" class="status disconnected">
+                <i class="fas fa-circle"></i>
+                Disconnected
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2><i class="fas fa-video"></i>Live Detection</h2>
+            <div class="video-container">
+                <video id="localVideo" autoplay muted playsinline></video>
+                <canvas id="overlayCanvas" class="overlay-canvas"></canvas>
+            </div>
+            
+            <!-- Object Detection Display -->
+            <div class="detection-container">
+                <div class="detection-header">
+                    <i class="fas fa-search"></i>
+                    Currently Detected Objects
+                </div>
+                <div id="detection-list" class="detection-list">
+                    <span class="detection-empty">No objects detected yet...</span>
+                </div>
+            </div>           
+            <div class="controls">
+                <button id="startBtn" class="btn">
+                    <i class="fas fa-play"></i>
+                    Start Camera
+                </button>
+                <button id="stopBtn" class="btn danger" disabled>
+                    <i class="fas fa-stop"></i>
+                    Stop Camera
+                </button>
+                <button id="testDetectionBtn" class="btn secondary">
+                    <i class="fas fa-flask"></i>
+                    Test Detection
+                </button>
+                <button id="benchBtn" class="btn secondary">
+                    <i class="fas fa-chart-line"></i>
+                    Run Benchmark
+                </button>
+                <button id="downloadBtn" class="btn secondary">
+                    <i class="fas fa-download"></i>
+                    Download Metrics
+                </button>
+            </div>
+        </div>
+        
+        <div class="demo-section qr-section">
+            <h2><i class="fas fa-mobile-alt"></i>Mobile Access</h2>
+            <p>Scan this QR code with your phone camera or use the URL below</p>
+            <div id="qr-code" style="min-height: 200px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px;">
+                QR Code will appear here...
+            </div>
+            <p id="phone-url"><strong>URL:</strong> Loading...</p>
+            <p><small>Make sure your phone and laptop are on the same network</small></p>
+        </div>
+        
+        <div class="demo-section">
+            <h2><i class="fas fa-chart-bar"></i>Performance Metrics</h2>
+            <div id="metrics" class="metrics">
+                Connecting to metrics stream...
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/detection_config.js"></script>
+    <script src="/static/gemini_detection.js"></script>
+    <script src="/static/detection.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 Mobile Camera Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0; padding: 20px; background: #f0f2f5;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        .card { background: white; border-radius: 12px; padding: 20px; margin: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .status { padding: 12px; border-radius: 8px; margin: 10px 0; font-weight: bold; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        video { width: 100%; max-width: 400px; border-radius: 8px; background: #000; }
+        button { background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-success { background: #28a745; }
+        .btn-danger { background: #dc3545; }
+        .system-info { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0; }
+        pre { background: #2d3748; color: #fff; padding: 15px; border-radius: 8px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📱 Mobile Camera Test</h1>
+            <p>This page helps diagnose camera access issues on mobile devices.</p>
+            
+            <div id="status" class="status info">
+                🔍 Click "Test Camera" to start diagnosis
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <video id="video" autoplay playsinline muted style="display: none;"></video>
+            </div>
+            
+            <div style="text-align: center;">
+                <button id="testBtn" onclick="testCamera()">📹 Test Camera</button>
+                <button id="stopBtn" onclick="stopCamera()" style="display: none;">⏹️ Stop Camera</button>
+                <button onclick="runDiagnostics()" class="btn-success">🔧 Run Diagnostics</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔧 System Information</h2>
+            <div class="system-info">
+                <p><strong>Protocol:</strong> <span id="protocol"></span></p>
+                <p><strong>Host:</strong> <span id="host"></span></p>
+                <p><strong>User Agent:</strong> <span id="userAgent"></span></p>
+                <p><strong>Is Mobile:</strong> <span id="isMobile"></span></p>
+                <p><strong>Is HTTPS:</strong> <span id="isHTTPS"></span></p>
+                <p><strong>MediaDevices Support:</strong> <span id="mediaSupport"></span></p>
+                <p><strong>Permissions API:</strong> <span id="permissionsAPI"></span></p>
+            </div>
+        </div>
+
+        <div class="card" id="diagnosticsCard" style="display: none;">
+            <h2>🔍 Diagnostics Results</h2>
+            <div id="diagnosticsResults"></div>
+        </div>
+
+        <div class="card">
+            <h2>💡 Common Solutions</h2>
+            <ul>
+                <li><strong>HTTPS Required:</strong> Mobile browsers require HTTPS for camera access</li>
+                <li><strong>Permission Blocked:</strong> Check browser settings → Site permissions → Camera</li>
+                <li><strong>Other Apps:</strong> Close other apps using the camera (Zoom, Teams, etc.)</li>
+                <li><strong>Browser Restart:</strong> Close and reopen your mobile browser</li>
+                <li><strong>Incognito Mode:</strong> Try opening in private/incognito browsing</li>
+            </ul>
+            
+            <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                <h3>📱 Mobile Browser Tips:</h3>
+                <ul>
+                    <li><strong>Chrome Android:</strong> Tap the lock icon → Camera → Allow</li>
+                    <li><strong>Safari iOS:</strong> Settings → Safari → Camera → Ask</li>
+                    <li><strong>Samsung Internet:</strong> Menu → Settings → Sites and downloads → Camera</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStream = null;
+
+        // Update system info
+        document.getElementById('protocol').textContent = location.protocol;
+        document.getElementById('host').textContent = location.host;
+        document.getElementById('userAgent').textContent = navigator.userAgent;
+        document.getElementById('isMobile').textContent = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'Yes' : 'No';
+        document.getElementById('isHTTPS').textContent = location.protocol === 'https:' ? 'Yes ✅' : 'No ❌';
+        document.getElementById('mediaSupport').textContent = navigator.mediaDevices ? 'Yes ✅' : 'No ❌';
+        document.getElementById('permissionsAPI').textContent = navigator.permissions ? 'Yes ✅' : 'No ❌';
+
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        async function testCamera() {
+            const video = document.getElementById('video');
+            const testBtn = document.getElementById('testBtn');
+            const stopBtn = document.getElementById('stopBtn');
+
+            try {
+                updateStatus('🔄 Requesting camera access...', 'info');
+                testBtn.disabled = true;
+
+                // Check protocol warning
+                if (location.protocol === 'http:' && location.hostname !== 'localhost') {
+                    updateStatus('⚠️ HTTP detected - Mobile browsers may require HTTPS for camera', 'warning');
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+
+                // Try multiple constraint sets
+                const constraints = [
+                    // Mobile optimized
+                    { video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } },
+                    // Desktop/fallback
+                    { video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } },
+                    // Basic
+                    { video: { width: { ideal: 320 }, height: { ideal: 240 } } },
+                    // Minimal
+                    { video: true }
+                ];
+
+                let stream = null;
+                let usedConstraint = null;
+
+                for (let i = 0; i < constraints.length; i++) {
+                    try {
+                        updateStatus(`🔍 Trying camera configuration ${i + 1}/${constraints.length}...`, 'info');
+                        stream = await navigator.mediaDevices.getUserMedia(constraints[i]);
+                        usedConstraint = constraints[i];
+                        break;
+                    } catch (err) {
+                        console.warn(`Camera config ${i + 1} failed:`, err);
+                        if (i === constraints.length - 1) throw err;
+                    }
+                }
+
+                if (!stream) {
+                    throw new Error('No camera configurations worked');
+                }
+
+                currentStream = stream;
+                video.srcObject = stream;
+                video.style.display = 'block';
+
+                // Get camera details
+                const videoTrack = stream.getVideoTracks()[0];
+                const settings = videoTrack ? videoTrack.getSettings() : {};
+
+                updateStatus(`✅ Camera access granted! Resolution: ${settings.width || 'unknown'}x${settings.height || 'unknown'}`, 'success');
+                
+                testBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-block';
+
+                // Log success details
+                console.log('Camera details:', {
+                    constraint: usedConstraint,
+                    settings: settings,
+                    capabilities: videoTrack ? videoTrack.getCapabilities() : null
+                });
+
+            } catch (error) {
+                console.error('Camera test failed:', error);
+                
+                let errorMsg = '❌ Camera access failed: ';
+                let suggestions = [];
+
+                switch (error.name) {
+                    case 'NotAllowedError':
+                        errorMsg += 'Permission denied';
+                        suggestions = [
+                            'Click the camera icon in address bar and allow access',
+                            'Check browser settings for camera permissions',
+                            'Try refreshing the page and allowing when prompted'
+                        ];
+                        break;
+                    case 'NotFoundError':
+                        errorMsg += 'No camera found';
+                        suggestions = ['Make sure your device has a working camera'];
+                        break;
+                    case 'NotReadableError':
+                        errorMsg += 'Camera in use by another app';
+                        suggestions = ['Close other apps using the camera (Zoom, Teams, etc.)'];
+                        break;
+                    case 'OverconstrainedError':
+                        errorMsg += 'Camera constraints not supported';
+                        suggestions = ['Try a different device or browser'];
+                        break;
+                    default:
+                        errorMsg += error.message || 'Unknown error';
+                        if (location.protocol === 'http:') {
+                            suggestions = ['Try using HTTPS instead of HTTP for mobile devices'];
+                        }
+                }
+
+                updateStatus(errorMsg, 'error');
+                
+                // Show suggestions
+                if (suggestions.length > 0) {
+                    setTimeout(() => {
+                        updateStatus('💡 Try: ' + suggestions.join(' • '), 'warning');
+                    }, 2000);
+                }
+
+                testBtn.disabled = false;
+            }
+        }
+
+        function stopCamera() {
+            const video = document.getElementById('video');
+            const testBtn = document.getElementById('testBtn');
+            const stopBtn = document.getElementById('stopBtn');
+
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+
+            video.srcObject = null;
+            video.style.display = 'none';
+            
+            testBtn.style.display = 'inline-block';
+            testBtn.disabled = false;
+            stopBtn.style.display = 'none';
+
+            updateStatus('🛑 Camera stopped', 'info');
+        }
+
+        async function runDiagnostics() {
+            const card = document.getElementById('diagnosticsCard');
+            const results = document.getElementById('diagnosticsResults');
+            
+            card.style.display = 'block';
+            results.innerHTML = '<p>🔄 Running diagnostics...</p>';
+
+            const diagnostics = {
+                timestamp: new Date().toISOString(),
+                location: {
+                    protocol: location.protocol,
+                    hostname: location.hostname,
+                    port: location.port,
+                    href: location.href
+                },
+                navigator: {
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    language: navigator.language,
+                    cookieEnabled: navigator.cookieEnabled,
+                    onLine: navigator.onLine
+                },
+                mediaDevices: !!navigator.mediaDevices,
+                permissions: !!navigator.permissions,
+                webrtc: {
+                    RTCPeerConnection: !!window.RTCPeerConnection,
+                    getUserMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+                }
+            };
+
+            // Test permissions
+            if (navigator.permissions) {
+                try {
+                    const cameraPermission = await navigator.permissions.query({name: 'camera'});
+                    diagnostics.cameraPermission = cameraPermission.state;
+                } catch (e) {
+                    diagnostics.cameraPermission = 'unavailable';
+                }
+            }
+
+            // Test getUserMedia availability
+            if (navigator.mediaDevices) {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    diagnostics.videoDevices = devices.filter(d => d.kind === 'videoinput').length;
+                    diagnostics.audioDevices = devices.filter(d => d.kind === 'audioinput').length;
+                } catch (e) {
+                    diagnostics.deviceEnumError = e.message;
+                }
+            }
+
+            results.innerHTML = `<pre>${JSON.stringify(diagnostics, null, 2)}</pre>`;
+            console.log('Diagnostics:', diagnostics);
+        }
+
+        // Auto-run diagnostics on load
+        document.addEventListener('DOMContentLoaded', runDiagnostics);
+    </script>
+</body>
+</html>

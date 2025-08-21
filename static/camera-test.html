@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Camera Test</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
+        #video { width: 100%; max-width: 640px; height: auto; border: 2px solid #ccc; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .status { padding: 10px; margin: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>📱 Simple Camera Test</h1>
+    <div id="status" class="status info">Ready to test camera</div>
+    
+    <video id="video" autoplay playsinline muted></video>
+    
+    <div>
+        <button id="startBtn">Start Camera</button>
+        <button id="stopBtn" disabled>Stop Camera</button>
+    </div>
+    
+    <div id="info">
+        <p><strong>URL:</strong> <span id="currentUrl"></span></p>
+        <p><strong>Browser:</strong> <span id="browserInfo"></span></p>
+        <p><strong>HTTPS:</strong> <span id="httpsStatus"></span></p>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const statusDiv = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        
+        let currentStream = null;
+
+        // Display info
+        document.getElementById('currentUrl').textContent = window.location.href;
+        document.getElementById('browserInfo').textContent = navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop';
+        document.getElementById('httpsStatus').textContent = location.protocol === 'https:' ? 'Yes ✅' : 'No ❌';
+
+        function updateStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            console.log(message);
+        }
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                updateStatus('🔄 Requesting camera access...', 'info');
+                
+                // Check if getUserMedia is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Camera API not supported in this browser');
+                }
+
+                // Request camera access
+                const constraints = {
+                    video: {
+                        width: { ideal: 640, min: 320 },
+                        height: { ideal: 480, min: 240 },
+                        frameRate: { ideal: 15, max: 30 },
+                        facingMode: 'environment' // Try back camera first
+                    },
+                    audio: false
+                };
+
+                console.log('Requesting camera with constraints:', constraints);
+                
+                try {
+                    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                } catch (err) {
+                    console.warn('Back camera failed, trying front camera:', err.message);
+                    // Try front camera
+                    constraints.video.facingMode = 'user';
+                    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                }
+
+                // Success!
+                video.srcObject = currentStream;
+                updateStatus('✅ Camera started successfully!', 'success');
+                
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+
+                // Log stream info
+                const track = currentStream.getVideoTracks()[0];
+                const settings = track.getSettings();
+                console.log('Camera settings:', settings);
+                updateStatus(`✅ Camera active: ${settings.width}x${settings.height}`, 'success');
+
+            } catch (error) {
+                console.error('Camera error:', error);
+                
+                let errorMsg = 'Unknown error';
+                if (error.name === 'NotAllowedError') {
+                    errorMsg = '🚫 Camera permission denied. Please allow camera access in browser settings.';
+                } else if (error.name === 'NotFoundError') {
+                    errorMsg = '📷 No camera found on this device.';
+                } else if (error.name === 'NotSupportedError') {
+                    errorMsg = '⚠️ Camera not supported in this browser.';
+                } else if (error.name === 'NotReadableError') {
+                    errorMsg = '🔒 Camera is being used by another application.';
+                } else if (error.message.includes('HTTPS')) {
+                    errorMsg = '🔐 HTTPS is required for camera access on this network.';
+                } else {
+                    errorMsg = `❌ Camera error: ${error.message}`;
+                }
+                
+                updateStatus(errorMsg, 'error');
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+                video.srcObject = null;
+                
+                updateStatus('⏹️ Camera stopped', 'info');
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        });
+
+        // Check permissions on load
+        if (navigator.permissions) {
+            navigator.permissions.query({name: 'camera'}).then(result => {
+                console.log('Camera permission status:', result.state);
+                updateStatus(`Camera permission: ${result.state}`, 'info');
+            }).catch(err => {
+                console.log('Could not check camera permissions:', err);
+            });
+        }
+    </script>
+</body>
+</html>

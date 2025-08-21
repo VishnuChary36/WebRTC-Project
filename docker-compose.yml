@@ -1,0 +1,23 @@
+services:
+  webrtc-detection:
+    build: .
+    ports:
+      - "3000:3000"
+      - "3443:3443"
+    environment:
+      - DETECTION_ENGINE=${DETECTION_ENGINE:-yolo}
+      - DEBUG=${DEBUG:-false}
+      - PORT=3000
+      - HTTPS_PORT=3443
+      - HOST_IP=${HOST_IP:-172.20.217.125}
+    volumes:
+      - ./metrics:/app/metrics
+      - ./logs:/app/logs
+      - ./.env:/app/.env
+    restart: unless-stopped
+    networks:
+      - webrtc-net
+
+networks:
+  webrtc-net:
+    driver: bridge
